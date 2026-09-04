@@ -51,6 +51,12 @@
 		},
 		"production": {
 			"name": "wdpr-render-prd",
+			"routes": [
+				{
+					"pattern": "wdpr.render.r74.tech",
+					"custom_domain": true,
+				},
+			],
 			"vars": {
 				"ENVIRONMENT": "production",
 				"FILES_ORIGIN": "https://wdpr-render-files-prd.r74.workers.dev",

@@ -46,6 +46,8 @@ Wrangler named environments do not inherit `vars` or bindings. Each environment 
 | staging     | `wdpr-render-staging` | `wdpr-render-files-staging` | `wdpr-render-html-staging` | `wpv4-staging`        |
 | production  | `wdpr-render-prd`     | `wdpr-render-files-prd`     | `wdpr-render-html-prd`     | `wpv4-prd`            |
 
+The production API is served from `https://wdpr.render.r74.tech` through a Worker Custom Domain.
+
 ## Cloudflare setup
 
 These commands change Cloudflare account state. Run them only after authenticating the intended account with `wrangler whoami`.
