@@ -75,8 +75,7 @@ export async function renderTarget(input: RenderTargetInput): Promise<RenderTarg
 			fullName: target.page.fullname,
 			unixName: target.page.name,
 			tags: target.page.tags ?? [],
-			urlPath:
-				input.urlPaths?.[normalizeFullname(target.page.fullname)] ?? `/${target.page.fullname}`,
+			urlPath: urlPathFor(input.urlPaths, target.page.fullname),
 			site: bulk.site.name,
 			domain: bulk.site.domain,
 			category: target.page.category,
@@ -155,6 +154,11 @@ export async function renderTarget(input: RenderTargetInput): Promise<RenderTarg
 			inputBytes,
 		);
 	}
+}
+
+function urlPathFor(paths: Readonly<Record<string, string>> | undefined, fullname: string): string {
+	const key = normalizeFullname(fullname);
+	return paths && Object.hasOwn(paths, key) ? paths[key]! : `/${fullname}`;
 }
 
 function baseResult(
