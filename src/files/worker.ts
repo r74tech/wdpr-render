@@ -1,11 +1,7 @@
 import { HTML_BLOCK_RESIZE_SCRIPT } from "@wdprlib/runtime/html-block-script";
 import { verifyHtmlBlockSignature } from "../core/signed-url";
 
-export interface FilesBindings {
-	ASSETS: Fetcher;
-	HTML_BLOCKS: R2Bucket;
-	FILES_URL_SECRET: string;
-}
+export type FilesBindings = Pick<FilesEnv, "ASSETS" | "HTML_BLOCKS" | "FILES_URL_SECRET">;
 
 const HTML_PATH = /^\/html\/([a-f0-9]{64})$/;
 const RESIZE_SCRIPT_PATH = "/common--javascript/html-block-iframe.js";

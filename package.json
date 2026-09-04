@@ -9,6 +9,7 @@
 		"deploy": "wrangler deploy --config wrangler.jsonc",
 		"deploy:files": "wrangler deploy --config wrangler.files.jsonc",
 		"cf-typegen": "wrangler types worker-configuration.d.ts --env-interface ApiEnv --config wrangler.jsonc && wrangler types files-worker-configuration.d.ts --env-interface FilesEnv --config wrangler.files.jsonc --include-runtime false",
+		"check:ratelimit-namespaces": "bun scripts/list-ratelimit-namespaces.ts 26090201=wdpr-render-staging:RENDER_RATE_LIMITER 26090202=wdpr-render-prd:RENDER_RATE_LIMITER",
 		"lint": "oxlint src test scripts",
 		"format": "oxfmt --check src test scripts public docs README.md CLAUDE.md package.json tsconfig.json vitest.config.ts wrangler.jsonc wrangler.files.jsonc .oxlintrc.json .oxfmtrc.json bunfig.toml",
 		"format:fix": "oxfmt src test scripts public docs README.md CLAUDE.md package.json tsconfig.json vitest.config.ts wrangler.jsonc wrangler.files.jsonc .oxlintrc.json .oxfmtrc.json bunfig.toml",

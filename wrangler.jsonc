@@ -4,8 +4,73 @@
 	"main": "src/api/index.ts",
 	"compatibility_date": "2026-09-04",
 	"compatibility_flags": ["nodejs_compat"],
+	"vars": {
+		"ENVIRONMENT": "development",
+		"FILES_ORIGIN": "http://localhost:8788",
+		"WPV4_ORIGIN": "http://localhost:5173",
+	},
+	"secrets": {
+		"required": ["FILES_URL_SECRET"],
+	},
+	"r2_buckets": [
+		{
+			"binding": "HTML_BLOCKS",
+			"bucket_name": "wdpr-render-html-dev",
+		},
+	],
 	"observability": {
 		"enabled": true,
+		"redact_query_string": true,
 	},
 	"upload_source_maps": true,
+	"env": {
+		"staging": {
+			"name": "wdpr-render-staging",
+			"vars": {
+				"ENVIRONMENT": "staging",
+				"FILES_ORIGIN": "https://wdpr-render-files-staging.r74.workers.dev",
+			},
+			"secrets": {
+				"required": ["FILES_URL_SECRET"],
+			},
+			"r2_buckets": [
+				{
+					"binding": "HTML_BLOCKS",
+					"bucket_name": "wdpr-render-html-staging",
+				},
+			],
+			"services": [{ "binding": "WPV4", "service": "wpv4-staging" }],
+			"ratelimits": [
+				{
+					"name": "RENDER_RATE_LIMITER",
+					"namespace_id": "26090201",
+					"simple": { "limit": 60, "period": 60 },
+				},
+			],
+		},
+		"production": {
+			"name": "wdpr-render-prd",
+			"vars": {
+				"ENVIRONMENT": "production",
+				"FILES_ORIGIN": "https://wdpr-render-files-prd.r74.workers.dev",
+			},
+			"secrets": {
+				"required": ["FILES_URL_SECRET"],
+			},
+			"r2_buckets": [
+				{
+					"binding": "HTML_BLOCKS",
+					"bucket_name": "wdpr-render-html-prd",
+				},
+			],
+			"services": [{ "binding": "WPV4", "service": "wpv4-prd" }],
+			"ratelimits": [
+				{
+					"name": "RENDER_RATE_LIMITER",
+					"namespace_id": "26090202",
+					"simple": { "limit": 60, "period": 60 },
+				},
+			],
+		},
+	},
 }

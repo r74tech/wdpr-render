@@ -9,6 +9,9 @@
 		"binding": "ASSETS",
 		"run_worker_first": true,
 	},
+	"secrets": {
+		"required": ["FILES_URL_SECRET"],
+	},
 	"r2_buckets": [
 		{
 			"binding": "HTML_BLOCKS",
@@ -17,6 +20,33 @@
 	],
 	"observability": {
 		"enabled": true,
+		"redact_query_string": true,
 	},
 	"upload_source_maps": true,
+	"env": {
+		"staging": {
+			"name": "wdpr-render-files-staging",
+			"secrets": {
+				"required": ["FILES_URL_SECRET"],
+			},
+			"r2_buckets": [
+				{
+					"binding": "HTML_BLOCKS",
+					"bucket_name": "wdpr-render-html-staging",
+				},
+			],
+		},
+		"production": {
+			"name": "wdpr-render-files-prd",
+			"secrets": {
+				"required": ["FILES_URL_SECRET"],
+			},
+			"r2_buckets": [
+				{
+					"binding": "HTML_BLOCKS",
+					"bucket_name": "wdpr-render-html-prd",
+				},
+			],
+		},
+	},
 }

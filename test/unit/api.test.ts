@@ -10,7 +10,7 @@ function env(options: { failContent?: string } = {}): Bindings & { puts: string[
 	const puts: string[] = [];
 	return {
 		ENVIRONMENT: "staging",
-		FILES_ORIGIN: "https://files.example",
+		FILES_ORIGIN: "https://wdpr-render-files-staging.r74.workers.dev",
 		FILES_URL_SECRET: "test-secret",
 		WPV4: {
 			fetch: async () =>
