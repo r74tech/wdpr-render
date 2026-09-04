@@ -29,6 +29,7 @@
 			"vars": {
 				"ENVIRONMENT": "staging",
 				"FILES_ORIGIN": "https://wdpr-render-files-staging.r74.workers.dev",
+				"WPV4_ORIGIN": "https://wpv4-staging.r74.workers.dev",
 			},
 			"secrets": {
 				"required": ["FILES_URL_SECRET"],
@@ -53,6 +54,7 @@
 			"vars": {
 				"ENVIRONMENT": "production",
 				"FILES_ORIGIN": "https://wdpr-render-files-prd.r74.workers.dev",
+				"WPV4_ORIGIN": "http://wp.r74.tech",
 			},
 			"secrets": {
 				"required": ["FILES_URL_SECRET"],

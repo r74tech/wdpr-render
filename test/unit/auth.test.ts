@@ -284,9 +284,13 @@ describe("IntrospectionCache", () => {
 
 describe("createIntrospectionFetcher", () => {
 	test("requires a service binding outside development", () => {
-		expect(() => createIntrospectionFetcher({ ENVIRONMENT: "staging", WPV4: undefined })).toThrow(
-			AuthError,
-		);
+		expect(() =>
+			createIntrospectionFetcher({
+				ENVIRONMENT: "staging",
+				WPV4_ORIGIN: "https://wpv4-staging.r74.workers.dev",
+				WPV4: undefined,
+			}),
+		).toThrow(AuthError);
 	});
 
 	test("uses the configured HTTP origin only in development", async () => {
@@ -309,6 +313,7 @@ describe("createIntrospectionFetcher", () => {
 		let request: Request | undefined;
 		const fetchIntrospection = createIntrospectionFetcher({
 			ENVIRONMENT: "staging",
+			WPV4_ORIGIN: "https://wpv4-staging.r74.workers.dev",
 			WPV4: {
 				async fetch(input: RequestInfo | URL, init?: RequestInit) {
 					request = new Request(input, init);
