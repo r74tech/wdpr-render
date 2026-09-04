@@ -1,0 +1,11 @@
+{
+	"$schema": "./node_modules/oxlint/configuration_schema.json",
+	"rules": {},
+	"ignorePatterns": [
+		"dist/",
+		"node_modules/",
+		".wrangler/",
+		"worker-configuration.d.ts",
+		"files-worker-configuration.d.ts"
+	]
+}

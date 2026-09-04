@@ -1,0 +1,11 @@
+{
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "wdpr-render-files-dev",
+	"main": "src/files/index.ts",
+	"compatibility_date": "2026-09-04",
+	"compatibility_flags": ["nodejs_compat"],
+	"observability": {
+		"enabled": true,
+	},
+	"upload_source_maps": true,
+}
