@@ -1,5 +1,5 @@
+import { handleFilesRequest, type FilesBindings } from "./worker";
+
 export default {
-	async fetch(): Promise<Response> {
-		return new Response("Not found", { status: 404 });
-	},
-} satisfies ExportedHandler<FilesEnv>;
+	fetch: (request, env) => handleFilesRequest(request, env),
+} satisfies ExportedHandler<FilesBindings>;

@@ -6,6 +6,9 @@ describe("API Worker runtime", () => {
 		const response = await SELF.fetch("https://example.com/v1/health");
 
 		expect(response.status).toBe(200);
-		expect(await response.json()).toEqual({ ok: true });
+		expect(await response.json()).toEqual({
+			ok: true,
+			versions: { parser: "5.1.6", render: "4.0.7" },
+		});
 	});
 });

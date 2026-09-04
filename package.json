@@ -14,7 +14,7 @@
 		"format:fix": "oxfmt src test scripts public docs README.md CLAUDE.md package.json tsconfig.json vitest.config.ts wrangler.jsonc wrangler.files.jsonc .oxlintrc.json .oxfmtrc.json bunfig.toml",
 		"typecheck": "tsc --noEmit",
 		"test": "bun test test/unit",
-		"test:workers": "bun run build:files && vitest run"
+		"test:workers": "bun run build:files && vitest run && vitest run --config vitest.files.config.ts"
 	},
 	"dependencies": {
 		"@wdprlib/ast": "^4.0.2",
