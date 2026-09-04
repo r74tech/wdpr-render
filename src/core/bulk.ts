@@ -71,7 +71,8 @@ export function buildBulk(input: { site: BulkSite; pages: readonly BulkPageInput
 			inputPage.site == null || inputPage.site.toLowerCase() === input.site.name.toLowerCase();
 		const pageSite = local ? null : inputPage.site!.toLowerCase();
 		const fullname = normalizeFullname(inputPage.fullname);
-		const key = pageKey(pageSite, fullname);
+		const storageKey = pageKey(pageSite, fullname);
+		const key = pageSite === null ? fullname : `${pageSite}:${fullname}`;
 		const separator = fullname.indexOf(":");
 		const category = separator < 0 ? "_default" : fullname.slice(0, separator);
 		const name = separator < 0 ? fullname : fullname.slice(separator + 1);
@@ -84,8 +85,8 @@ export function buildBulk(input: { site: BulkSite; pages: readonly BulkPageInput
 			key,
 		};
 
-		if (pages.has(key)) duplicateKeys.add(key);
-		else pages.set(key, page);
+		if (pages.has(storageKey)) duplicateKeys.add(key);
+		else pages.set(storageKey, page);
 		if (local) localPages.push(page);
 	}
 
@@ -117,7 +118,7 @@ export function parseTargets(bulk: Bulk, requestedTargets?: readonly string[]): 
 			crossSiteTargets.push(requested);
 			continue;
 		}
-		const page = bulk.pages.get(normalizeFullname(requested));
+		const page = bulk.pages.get(pageKey(null, normalizeFullname(requested)));
 		if (!page || page.site !== null) {
 			unknownTargets.push(requested);
 			continue;
@@ -136,5 +137,5 @@ export function parseTargets(bulk: Bulk, requestedTargets?: readonly string[]): 
 }
 
 function pageKey(site: string | null, fullname: string): string {
-	return site === null ? fullname : `${site}:${fullname}`;
+	return site === null ? `local\0${fullname}` : `remote\0${site}\0${fullname}`;
 }

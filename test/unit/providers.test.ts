@@ -10,6 +10,7 @@ import {
 	MissingIncludeCollector,
 	createIncludeFetcher,
 	createListPagesProvider,
+	createListUsersProvider,
 	createPageExistenceResolver,
 	createTagCloudProvider,
 	createUserResolver,
@@ -75,6 +76,20 @@ describe("include provider", () => {
 		expect(await fetchInclude({ site: "OTHER", page: "Missing" })).toBeNull();
 		expect(await fetchInclude({ site: "other", page: "missing" })).toBeNull();
 		expect(missing.values()).toEqual([{ site: "other", page: "missing", requested_by: ["guide"] }]);
+	});
+
+	test("keeps local category and cross-site missing references separate", async () => {
+		const bulk = fixtureBulk();
+		const missing = new MissingIncludeCollector("guide", bulk.site.name);
+		const fetchInclude = createIncludeFetcher(bulk, missing);
+
+		await fetchInclude({ site: null, page: "other:missing" });
+		await fetchInclude({ site: "other", page: "missing" });
+
+		expect(missing.values()).toEqual([
+			{ site: null, page: "other:missing", requested_by: ["guide"] },
+			{ site: "other", page: "missing", requested_by: ["guide"] },
+		]);
 	});
 
 	test("projects only the public dependency fields", () => {
@@ -144,6 +159,47 @@ describe("PageData and ListPages", () => {
 		expect(diagnostics).toEqual([]);
 	});
 
+	test("applies supported filters and pagination after range-dot selection", async () => {
+		const bulk = fixtureBulk();
+		const listPages = createListPagesProvider(bulk, []);
+
+		const filtered = await listPages(
+			{
+				range: ".",
+				tags: { all: [], any: ["missing"], none: [], special: null },
+			},
+			requirement,
+			callbackContext,
+		);
+		const offset = await listPages({ range: ".", offset: 1 }, requirement, callbackContext);
+
+		expect(filtered.pages).toEqual([]);
+		expect(filtered.totalCount).toBe(0);
+		expect(offset.pages).toEqual([]);
+		expect(offset.totalCount).toBe(1);
+	});
+
+	test("treats a negative limit as unbounded", async () => {
+		const bulk = fixtureBulk();
+		const listPages = createListPagesProvider(bulk, []);
+
+		const result = await listPages(
+			{
+				category: { include: [], exclude: [], all: true, current: false },
+				order: { field: "fullname", direction: "asc" },
+				limit: -1,
+			},
+			requirement,
+			callbackContext,
+		);
+
+		expect(result.pages.map((page) => page.fullname)).toEqual([
+			"guide",
+			"news:first",
+			"news:second",
+		]);
+	});
+
 	test.each([
 		[{ pagetype: "normal" }, "pagetype"],
 		[{ parent: { type: "none" } }, "parent"],
@@ -181,6 +237,17 @@ describe("PageData and ListPages", () => {
 });
 
 describe("TagCloud and render resolvers", () => {
+	test("provides the request viewer to ListUsers", async () => {
+		const viewer = { number: 42, title: "Alice", name: "alice" };
+
+		expect(
+			await createListUsersProvider(viewer)({ id: 0, users: ".", neededVariables: [] }),
+		).toEqual({ user: viewer });
+		expect(
+			await createListUsersProvider(undefined)({ id: 0, users: ".", neededVariables: [] }),
+		).toBeNull();
+	});
+
 	test("normalizes category and aggregates visible tags", async () => {
 		const bulk = buildBulk({
 			site,
@@ -207,13 +274,13 @@ describe("TagCloud and render resolvers", () => {
 
 	test("preserves requested page spellings and raw user map keys", async () => {
 		const bulk = fixtureBulk();
-		const pageExists = createPageExistenceResolver(bulk, ["Existing"]);
+		const pageExists = createPageExistenceResolver(bulk, ["Existing", "my-page"]);
 		const users = createUserResolver([
 			{ unix_name: "alice", name: "Alice", avatar_url: "https://example.com/alice.png" },
 		]);
 
-		expect(await pageExists(["GUIDE", "existing", "Missing"])).toEqual(
-			new Set(["GUIDE", "existing"]),
+		expect(await pageExists(["GUIDE", "existing", "My Page", "My/Page", "Missing"])).toEqual(
+			new Set(["GUIDE", "existing", "My Page", "My/Page"]),
 		);
 		expect(await users(["ALICE", "unknown"])).toEqual(
 			new Map([

@@ -47,6 +47,19 @@ describe("buildBulk", () => {
 			}),
 		).toThrow(BulkInputError);
 	});
+
+	test("keeps a local category fullname separate from a same-named cross-site page", () => {
+		const bulk = buildBulk({
+			site,
+			pages: [
+				{ fullname: "other:guide", source: "local" },
+				{ site: "other", fullname: "guide", source: "remote" },
+			],
+		});
+
+		expect(resolvePageRef(bulk, { site: null, page: "other:guide" })?.source).toBe("local");
+		expect(resolvePageRef(bulk, { site: "other", page: "guide" })?.source).toBe("remote");
+	});
 });
 
 describe("parseTargets", () => {

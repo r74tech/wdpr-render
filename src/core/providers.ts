@@ -6,6 +6,8 @@ import {
 	type IncludeDependency,
 	type ListPagesDataRequirement,
 	type ListPagesExternalData,
+	type ListUsersDataRequirement,
+	type ListUsersExternalData,
 	type NormalizedListPagesQuery,
 	type PageData,
 	type ProcessWikitextCallbackContext,
@@ -40,6 +42,12 @@ export interface RenderUserInput {
 	avatar_url?: string;
 }
 
+export interface RenderViewerInput {
+	number: number;
+	title: string;
+	name: string;
+}
+
 export class MissingIncludeCollector {
 	readonly #requestedBy: string;
 	readonly #siteName: string;
@@ -59,7 +67,7 @@ export class MissingIncludeCollector {
 				? null
 				: reference.site.toLowerCase();
 		const page = normalizeFullname(reference.page);
-		const key = site === null ? page : `${site}:${page}`;
+		const key = site === null ? `local\0${page}` : `remote\0${site}\0${page}`;
 		const existing = this.#missing.get(key);
 		if (existing) {
 			existing.requestedBy.add(this.#requestedBy);
@@ -155,11 +163,6 @@ export function createListPagesProvider(
 
 		if (query.limit === 0) return { pages: [], totalCount: 0, site: bulk.site };
 		const current = resolvePageRef(bulk, { site: null, page: context.page.fullName });
-		if (query.range === ".") {
-			const pages = current ? [toPageData(current)] : [];
-			return { pages, totalCount: pages.length, site: bulk.site };
-		}
-
 		const currentPage = current
 			? toPageData(current)
 			: definePageData({
@@ -169,7 +172,8 @@ export function createListPagesProvider(
 					updatedAt: new Date(0),
 					tags: context.page.tags ?? [],
 				});
-		const pages = bulk.localPages
+		const candidates = query.range === "." ? (current ? [current] : []) : bulk.localPages;
+		const pages = candidates
 			.map(toPageData)
 			.filter((page) => matchesListPagesSelectors(page, query, currentPage))
 			.filter((page) => query.name === undefined || page.name === normalizeFullname(query.name))
@@ -180,13 +184,21 @@ export function createListPagesProvider(
 			.toSorted(listPagesComparator(query));
 		const totalCount = pages.length;
 		const offset = Math.max(query.offset ?? 0, 0);
-		const limit = Math.max(query.limit ?? 20, 0);
+		const limit = query.limit ?? 20;
 		return {
-			pages: pages.slice(offset, offset + limit),
+			pages: pages.slice(offset, limit < 0 ? undefined : offset + limit),
 			totalCount,
 			site: bulk.site,
 		};
 	};
+}
+
+type ListUsersProvider = (
+	requirement: ListUsersDataRequirement,
+) => Promise<ListUsersExternalData | null>;
+
+export function createListUsersProvider(viewer: RenderViewerInput | undefined): ListUsersProvider {
+	return async () => (viewer ? { user: viewer } : null);
 }
 
 type TagCloudProvider = (requirement: TagCloudDataRequirement) => Promise<TagCloudExternalData>;
@@ -223,11 +235,11 @@ export function createPageExistenceResolver(
 	existingPages: readonly string[],
 ): (requestedPages: string[]) => Promise<ReadonlySet<string>> {
 	const existing = new Set([
-		...bulk.localPages.map((page) => page.fullname),
-		...existingPages.map(normalizeFullname),
+		...bulk.localPages.map((page) => normalizeRenderedPageReference(page.fullname)),
+		...existingPages.map(normalizeRenderedPageReference),
 	]);
 	return async (requestedPages) =>
-		new Set(requestedPages.filter((page) => existing.has(normalizeFullname(page))));
+		new Set(requestedPages.filter((page) => existing.has(normalizeRenderedPageReference(page))));
 }
 
 export function createUserResolver(
@@ -302,4 +314,14 @@ function normalizeWikidotCategoryName(value: string): string {
 		.replace(/[^a-z0-9]+/g, "-")
 		.replace(/^-+|-+$/g, "");
 	return leadingUnderscore ? `_${body}` : body;
+}
+
+function normalizeRenderedPageReference(value: string): string {
+	let normalized = value.toLowerCase();
+	if (normalized.includes(":")) normalized = normalized.replace(/:\s+/g, ":");
+	if (/\s/.test(normalized)) normalized = normalized.replace(/\s+/g, "-").trim();
+	if (!normalized.startsWith("/") && normalized.includes("/")) {
+		normalized = normalized.replaceAll("/", "-");
+	}
+	return normalized.startsWith("/") ? normalized.slice(1) : normalized;
 }
