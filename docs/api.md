@@ -18,8 +18,8 @@ The key is introspected through wpv4 and must be active, unexpired, and include 
 
 - `Content-Type` must be `application/json`.
 - The JSON body is at most 5,000,000 UTF-8 bytes.
-- `pages` contains at most 500 entries. An individual `source` is at most 1,000,000 UTF-8 bytes.
-- `targets` contains at most 500 entries and cannot contain more entries than `pages`.
+- `pages` contains at most 20 entries. An individual `source` is at most 1,000,000 UTF-8 bytes.
+- `targets` contains at most 20 entries and cannot contain more entries than `pages`.
 - `site` defaults to `{ "name": "render", "title": "Render", "domain": "" }`. Its `name` matches `[a-z0-9-]{1,64}`, `title` is at most 128 characters, and `domain` is at most 253 characters.
 - Each page requires `fullname` and `source`. `fullname` contains 1–256 characters; optional `site` is null or a valid site name, and optional `title` is at most 256 characters.
 - Optional `created_at` and `updated_at` are RFC 3339 timestamps with an offset. Optional `created_by` is `{ "id": <integer>, "name": <string>, "unix_name": <string> }`; `rating` and `rating_votes` are numbers.

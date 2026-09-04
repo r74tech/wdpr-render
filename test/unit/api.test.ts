@@ -320,15 +320,52 @@ describe("API Worker", () => {
 		expect(measured.status).toBe(413);
 	});
 
-	test("rejects more than 500 pages", async () => {
-		const response = await app.fetch(
+	test("limits pages and targets to 20 entries", async () => {
+		const pages = Array.from({ length: 20 }, (_, index) => ({
+			fullname: `p-${index}`,
+			source: "",
+		}));
+		const targets = pages.map((page) => page.fullname);
+		const allowed = await app.fetch(
 			request("/v1/resolve", {
-				pages: Array.from({ length: 501 }, (_, index) => ({ fullname: `p-${index}`, source: "" })),
+				pages,
 			}),
 			env(),
 		);
-		expect(response.status).toBe(400);
-		expect((await json(response)).code).toBe("validation");
+		expect(allowed.status).toBe(200);
+
+		const rejected = await app.fetch(
+			request("/v1/resolve", {
+				pages: Array.from({ length: 21 }, (_, index) => ({ fullname: `p-${index}`, source: "" })),
+			}),
+			env(),
+		);
+		expect(rejected.status).toBe(400);
+		expect((await json(rejected)).code).toBe("validation");
+
+		for (const path of ["/v1/resolve", "/v1/render"]) {
+			const allowedTargets = await app.fetch(request(path, { pages, targets }), env());
+			expect(allowedTargets.status).toBe(200);
+
+			const rejectedTargets = await app.fetch(
+				request(path, { pages, targets: [...targets, targets[0]] }),
+				env(),
+			);
+			expect(rejectedTargets.status).toBe(400);
+			const body = await json(rejectedTargets);
+			const detail = body.detail as {
+				issues: Array<{ code: string; maximum?: number; path: PropertyKey[] }>;
+			};
+			expect(
+				detail.issues.some(
+					(issue) =>
+						issue.code === "too_big" &&
+						issue.maximum === 20 &&
+						issue.path.length === 1 &&
+						issue.path[0] === "targets",
+				),
+			).toBe(true);
+		}
 	});
 
 	test("allows empty pages and limits targets to the page count", async () => {

@@ -2,6 +2,7 @@ import { z } from "zod";
 import { ApiError } from "./errors";
 
 const encoder = new TextEncoder();
+const MAX_BULK_ENTRIES = 20;
 const siteName = z.string().regex(/^[a-z0-9-]{1,64}$/);
 const isoDate = z.iso.datetime({ offset: true });
 const source = z.string().superRefine((value, context) => {
@@ -55,18 +56,18 @@ const urlPathsSchema = z.unknown().transform((value, context): Record<string, st
 
 const baseSchema = z.object({
 	site: siteSchema.default({ name: "render", title: "Render", domain: "" }),
-	pages: z.array(pageSchema).max(500),
+	pages: z.array(pageSchema).max(MAX_BULK_ENTRIES),
 });
 
 export const resolveRequestSchema = baseSchema
 	.extend({
-		targets: z.array(z.string().min(1).max(256)).max(500).optional(),
+		targets: z.array(z.string().min(1).max(256)).max(MAX_BULK_ENTRIES).optional(),
 	})
 	.superRefine(targetsWithinPages);
 
 export const renderRequestSchema = baseSchema
 	.extend({
-		targets: z.array(z.string().min(1).max(256)).max(500),
+		targets: z.array(z.string().min(1).max(256)).max(MAX_BULK_ENTRIES),
 		force: z.boolean().default(false),
 		viewer: z.object({ number: z.number(), title: z.string(), name: z.string() }).optional(),
 		users: z
