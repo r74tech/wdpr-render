@@ -5,7 +5,10 @@ export default defineConfig({
 	plugins: [
 		cloudflareTest({
 			wrangler: { configPath: "./wrangler.files.jsonc" },
-			miniflare: { bindings: { FILES_URL_SECRET: "test-secret" } },
+			miniflare: {
+				compatibilityDate: "2026-09-04",
+				bindings: { FILES_URL_SECRET: "test-secret" },
+			},
 		}),
 	],
 	test: {
