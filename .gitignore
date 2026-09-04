@@ -8,3 +8,12 @@ coverage/
 !.env.example
 *.log
 *.tsbuildinfo
+
+# SOPS-encrypted secrets are tracked; decrypted copies and private age keys are not.
+!mise.toml
+!secrets/
+!secrets/*.env
+secrets/*.plain
+secrets/*.decrypted
+*.age
+*.age.key

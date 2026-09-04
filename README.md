@@ -17,6 +17,8 @@ Create `.dev.vars` without committing it. The same `FILES_URL_SECRET` value is u
 FILES_URL_SECRET=<random-secret>
 ```
 
+Generate the value with `openssl rand -hex 32`. Local values are disposable and are not shared through SOPS.
+
 Run wpv4 on port 5173, the files Worker on 8788, and the API Worker on another port:
 
 ```sh
@@ -87,14 +89,39 @@ If either ID has an unexpected owner or duplicate use, choose a new unused ID an
 
 ### Secrets
 
-Generate one strong random `FILES_URL_SECRET` per environment and set the identical value on that environment's API and files Workers:
+Staging and production use separate `FILES_URL_SECRET` values. Each encrypted file supplies the same value to that environment's files Worker and API Worker:
+
+| Environment | Encrypted file           |
+| ----------- | ------------------------ |
+| staging     | `secrets/staging.env`    |
+| production  | `secrets/production.env` |
+
+Install the pinned SOPS and age versions, then trust the project configuration:
 
 ```sh
-bunx wrangler secret put FILES_URL_SECRET --config wrangler.jsonc --env staging
-bunx wrangler secret put FILES_URL_SECRET --config wrangler.files.jsonc --env staging
-bunx wrangler secret put FILES_URL_SECRET --config wrangler.jsonc --env production
-bunx wrangler secret put FILES_URL_SECRET --config wrangler.files.jsonc --env production
+mise trust
+mise install
 ```
+
+The private age key stays at `~/.config/sops/age/keys.txt`. Edit an encrypted value without creating a plaintext repository file:
+
+```sh
+mise run secrets:edit:staging
+mise run secrets:edit:production
+```
+
+To add or remove an authorized age key, update `.sops.yaml` while an existing key is available, then run `mise run secrets:update-recipients` and commit the rewritten encrypted files.
+
+After the R2 bucket and wpv4 Service Binding target exist, deploy with the encrypted secret:
+
+```sh
+mise run secrets:deploy:staging -- --dry-run
+mise run secrets:deploy:staging
+```
+
+The first command validates both Worker bundles without deploying. The deploy task decrypts to a mode-600 temporary file, deploys the files Worker first and the API Worker second with `wrangler deploy --secrets-file`, then removes the plaintext file. Use `secrets:deploy:production` only after staging verification.
+
+Changing `FILES_URL_SECRET` immediately invalidates URLs signed with the old value and creates a short mismatch while the two Workers deploy sequentially. Keep each environment's value unchanged unless it is compromised.
 
 ### Deploy order and Workers Builds
 
@@ -106,5 +133,9 @@ bunx wrangler deploy --config wrangler.jsonc --env staging
 ```
 
 Repeat with `--env production` only after the staging release gates pass. Configure two Workers Builds projects, one for each Wrangler config. Use `develop` for staging and `production` for production; install with `bun install --frozen-lockfile` and use the matching deploy command above.
+
+The encrypted files are present only in the repository checkout and are not part of either Worker bundle. The current Workers Builds commands do not decrypt SOPS files; Wrangler preserves existing runtime secrets during an ordinary deploy. Run the matching `secrets:deploy:*` task once before the first automatic build and again whenever `FILES_URL_SECRET` changes. Do not add the personal age private key to Workers Builds.
+
+If secret synchronization is automated later, generate a dedicated Workers Builds age key, add only its public recipient to `.sops.yaml`, store its private key as the `SOPS_AGE_KEY` build secret, and use one ordered pipeline to deploy files before API. Two independent builds must not rotate the shared secret concurrently.
 
 Before deploying, verify the target account, R2 lifecycle rules, namespace ledger, required secrets, and the `WPV4` Service Binding. Deployment and resource creation are intentionally not performed by the repository's test suite.

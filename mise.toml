@@ -1,0 +1,30 @@
+[tools]
+sops = "3.9"
+age = "1.2"
+
+[env]
+SOPS_AGE_KEY_FILE = "{{env.HOME}}/.config/sops/age/keys.txt"
+
+[tasks."secrets:edit:staging"]
+description = "staging用secretを編集"
+run = "sops secrets/staging.env"
+
+[tasks."secrets:edit:production"]
+description = "production用secretを編集"
+run = "sops secrets/production.env"
+
+[tasks."secrets:deploy:staging"]
+description = "stagingのfiles WorkerとAPI Workerをsecret付きでdeploy"
+run = "bash scripts/deploy-secrets.sh staging secrets/staging.env"
+
+[tasks."secrets:deploy:production"]
+description = "productionのfiles WorkerとAPI Workerをsecret付きでdeploy"
+run = "bash scripts/deploy-secrets.sh production secrets/production.env"
+
+[tasks."secrets:update-recipients"]
+description = "SOPS recipient変更後に暗号化ファイルのdata keyを更新"
+run = """
+for file in secrets/*.env; do
+  sops updatekeys "$file"
+done
+"""

@@ -1,0 +1,5 @@
+creation_rules:
+  - path_regex: secrets/(staging|production)\.env$
+    key_groups:
+      - age:
+          - age1hgmj537mkc4td6sul3p48m89dd3fv09dgmkxqtrjrlctrtkkze6qu0wnlz
