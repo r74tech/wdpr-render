@@ -4,7 +4,7 @@ The API accepts all page source needed for one render as JSON. It does not read 
 
 ## Authentication
 
-Except for `GET /v1/health` and CORS preflight, every route requires:
+Except for `GET /`, `GET /v1/health`, and CORS preflight, every route requires:
 
 ```http
 Authorization: Bearer wpv4_<43 URL-safe characters>

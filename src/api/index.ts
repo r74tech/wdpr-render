@@ -17,7 +17,7 @@ app.use("*", async (context, next) => {
 });
 app.use("/v1/*", cors({ origin: "*", allowHeaders: ["Authorization", "Content-Type"] }));
 
-app.get("/v1/health", (context) =>
+app.on("GET", ["/", "/v1/health"], (context) =>
 	context.json({ ok: true, versions: { parser: "5.1.6", render: "4.0.7" } }),
 );
 app.use("/v1/me", requireRenderKey);

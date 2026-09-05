@@ -43,8 +43,8 @@ async function render(fetcher: Fetcher, source: string): Promise<Response> {
 }
 
 describe("API Worker runtime", () => {
-	test("serves the health endpoint", async () => {
-		const response = await SELF.fetch("https://example.com/v1/health");
+	test.each(["/", "/v1/health"])("serves the public health endpoint at %s", async (path) => {
+		const response = await SELF.fetch(`https://example.com${path}`);
 
 		expect(response.status).toBe(200);
 		expect(await response.json()).toEqual({

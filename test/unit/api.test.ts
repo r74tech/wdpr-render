@@ -37,7 +37,7 @@ function request(path: string, body?: unknown, headers: Record<string, string> =
 		method: body === undefined ? "GET" : "POST",
 		headers: {
 			...(body === undefined ? {} : { "Content-Type": "application/json" }),
-			...(path === "/v1/health" ? {} : { Authorization: `Bearer ${validKey}` }),
+			...(path === "/" || path === "/v1/health" ? {} : { Authorization: `Bearer ${validKey}` }),
 			...headers,
 		},
 		body: body === undefined ? undefined : JSON.stringify(body),
@@ -50,14 +50,16 @@ async function json(response: Response): Promise<Record<string, unknown>> {
 
 describe("API Worker", () => {
 	test("serves public health and JSON errors with no-store headers", async () => {
-		const health = await app.fetch(request("/v1/health"), {} as Bindings);
-		expect(health.status).toBe(200);
-		expect(await json(health)).toEqual({
-			ok: true,
-			versions: { parser: "5.1.6", render: "4.0.7" },
-		});
-		expect(health.headers.get("Content-Type")).toBe("application/json; charset=UTF-8");
-		expect(health.headers.get("Cache-Control")).toBe("no-store");
+		for (const path of ["/", "/v1/health"]) {
+			const health = await app.fetch(request(path), {} as Bindings);
+			expect(health.status).toBe(200);
+			expect(await json(health)).toEqual({
+				ok: true,
+				versions: { parser: "5.1.6", render: "4.0.7" },
+			});
+			expect(health.headers.get("Content-Type")).toBe("application/json; charset=UTF-8");
+			expect(health.headers.get("Cache-Control")).toBe("no-store");
+		}
 
 		const missing = await app.fetch(request("/unknown"), {} as Bindings);
 		expect(missing.status).toBe(404);
