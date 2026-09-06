@@ -17,17 +17,8 @@ import {
 import type { ResolvedUser } from "@wdprlib/render";
 import { normalizeFullname, resolvePageRef, type Bulk, type BulkPage } from "./bulk";
 
-export interface Dependency {
-	site: string | null;
-	page: string;
-	iteration: number;
-}
-
-export interface MissingInclude {
-	site: string | null;
-	page: string;
-	requested_by: string[];
-}
+import type { Dependency, MissingInclude } from "./schema";
+export type { Dependency, MissingInclude } from "./schema";
 
 export interface ProviderDiagnostic {
 	severity: "warning";

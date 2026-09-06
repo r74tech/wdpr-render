@@ -10,18 +10,28 @@ const UNAUTHORIZED_CACHE_TTL_MS = 10_000;
 const DEFAULT_TIMEOUT_MS = 5_000;
 const DEFAULT_CACHE_CAPACITY = 1_000;
 
-export const introspectionSchema = z.object({
-	user: z.object({
-		wikidot_id: z.number().int(),
-		name: z.string(),
-		unix_name: z.string(),
-	}),
-	key: z.object({
-		name: z.string(),
-		scopes: z.array(z.string()),
-		expires_at: z.union([z.iso.datetime({ offset: true }), z.null()]),
-	}),
-});
+export const introspectionSchema = z
+	.object({
+		user: z.object({
+			wikidot_id: z.number().int(),
+			name: z.string(),
+			unix_name: z.string(),
+		}),
+		key: z.object({
+			name: z.string(),
+			scopes: z.array(z.string()),
+			expires_at: z.union([z.iso.datetime({ offset: true }), z.null()]),
+		}),
+	})
+	.meta({
+		id: "Me",
+		examples: [
+			{
+				user: { wikidot_id: 123456, name: "Example User", unix_name: "example-user" },
+				key: { name: "Render preview", scopes: ["render:use"], expires_at: "2030-01-02T00:00:00Z" },
+			},
+		],
+	});
 
 export type Introspection = z.infer<typeof introspectionSchema>;
 

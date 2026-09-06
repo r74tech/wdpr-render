@@ -50,7 +50,10 @@ describe("API Worker runtime", () => {
 		expect(await spec.json()).toMatchObject({ openapi: "3.1.0" });
 		const docs = await SELF.fetch("https://example.com/docs");
 		expect(docs.status).toBe(200);
-		expect(await docs.text()).toContain("/openapi.json");
+		expect(await docs.text()).toContain('<redoc spec-url="/openapi.json"');
+		const swagger = await SELF.fetch("https://example.com/swagger");
+		expect(swagger.status).toBe(200);
+		expect(await swagger.text()).toContain("SwaggerUIBundle");
 	});
 
 	test.each(["/", "/v1/health"])("serves the public health endpoint at %s", async (path) => {

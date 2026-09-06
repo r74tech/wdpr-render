@@ -4,7 +4,7 @@ Cloudflare Workers API that renders a bulk set of Wikidot pages with WDPR. Missi
 
 See [docs/api.md](docs/api.md) for the HTTP contract and client workflow.
 
-The API serves Swagger UI at `/docs` and the OpenAPI 3.1 specification at `/openapi.json`. Both are public. In Swagger UI, use **Authorize** with a `render:use` API key to try protected operations against the current API origin.
+The API serves Redoc at `/docs`, Swagger UI at `/swagger`, and the generated OpenAPI 3.1 specification at `/openapi.json`. All three are public. In Swagger UI, use **Authorize** with a `render:use` API key to try protected operations against the current API origin.
 
 ## Development
 

@@ -1,11 +1,7 @@
 import { sha256Hex, signHtmlBlockUrl } from "./signed-url";
 
-export interface HtmlBlockMetadata {
-	index: number;
-	hash: string;
-	url: string;
-	expires_at: number;
-}
+import type { HtmlBlockMetadata } from "./schema";
+export type { HtmlBlockMetadata } from "./schema";
 
 export interface CollectedHtmlBlock {
 	index: number;

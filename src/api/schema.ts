@@ -63,7 +63,8 @@ export const resolveRequestSchema = baseSchema
 	.extend({
 		targets: z.array(z.string().min(1).max(256)).max(MAX_BULK_ENTRIES).optional(),
 	})
-	.superRefine(targetsWithinPages);
+	.superRefine(targetsWithinPages)
+	.meta({ id: "ResolveRequest" });
 
 export const renderRequestSchema = baseSchema
 	.extend({
@@ -84,7 +85,8 @@ export const renderRequestSchema = baseSchema
 		existing_pages: z.array(z.string()).max(10_000).optional(),
 		url_paths: urlPathsSchema.optional(),
 	})
-	.superRefine(targetsWithinPages);
+	.superRefine(targetsWithinPages)
+	.meta({ id: "RenderRequest" });
 
 export type ResolveRequest = z.infer<typeof resolveRequestSchema>;
 export type RenderRequest = z.infer<typeof renderRequestSchema>;

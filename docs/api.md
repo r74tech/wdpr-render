@@ -4,15 +4,15 @@ The API accepts all page source needed for one render as JSON. It does not read 
 
 ## Interactive documentation
 
-Open `/docs` on the API origin for Swagger UI, or download `/openapi.json` for the OpenAPI 3.1 specification. Locally, these are `http://localhost:8789/docs` and `http://localhost:8789/openapi.json` when using the README's development ports.
+Open `/docs` on the API origin for Redoc, `/swagger` to try requests in Swagger UI, or download `/openapi.json` for the generated OpenAPI 3.1 specification. Locally, these are `http://localhost:8789/docs`, `http://localhost:8789/swagger`, and `http://localhost:8789/openapi.json` when using the README's development ports.
 
-Swagger UI loads its JavaScript and CSS from unpkg. Enter the raw `wpv4_` key in **Authorize**; Swagger UI adds the Bearer prefix. **Try it out** sends real requests to the same API origin, including normal rate limiting and HTML-block persistence. Credentials are not persisted across reloads, and the external Swagger validator is disabled.
+Redoc and Swagger UI load their assets from jsDelivr. Redoc displays the API reference; use the link to Swagger UI to send requests. Enter the raw `wpv4_` key in **Authorize**; Swagger UI adds the Bearer prefix. **Try it out** sends real requests to the same API origin, including normal rate limiting and HTML-block persistence. Credentials are not persisted across reloads, and the external Swagger validator is disabled.
 
-Request schemas are generated from the API's Zod validators. UTF-8 byte limits and cross-field constraints are described in the operations because JSON Schema cannot express them directly. The specification can also be consumed by client generators such as `@hey-api/openapi-ts`.
+`hono-openapi` generates paths and methods from the registered Hono routes, with descriptions and schema references declared alongside their handlers. Request validators and response types share the Zod schemas used to generate the specification; there is no separate hand-written OpenAPI document. UTF-8 byte limits and cross-field constraints are described in the operations because JSON Schema cannot express them directly. The specification can also be consumed by client generators such as `@hey-api/openapi-ts`.
 
 ## Authentication
 
-`GET /`, `GET /v1/health`, `GET /docs`, `GET /openapi.json`, and CORS preflight are public. `GET /v1/me`, `POST /v1/resolve`, and `POST /v1/render` require:
+`GET /`, `GET /v1/health`, `GET /docs`, `GET /swagger`, `GET /openapi.json`, and CORS preflight are public. `GET /v1/me`, `POST /v1/resolve`, and `POST /v1/render` require:
 
 ```http
 Authorization: Bearer wpv4_<43 URL-safe characters>

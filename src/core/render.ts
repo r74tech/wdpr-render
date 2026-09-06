@@ -2,12 +2,7 @@ import { createSettings, processWikitext } from "@wdprlib/parser";
 import { renderWikitext } from "@wdprlib/render";
 import type { Bulk, TargetPage } from "./bulk";
 import { normalizeFullname } from "./bulk";
-import {
-	HtmlBlockCollector,
-	persistHtmlBlocks,
-	type HtmlBlockBucket,
-	type HtmlBlockMetadata,
-} from "./html-blocks";
+import { HtmlBlockCollector, persistHtmlBlocks, type HtmlBlockBucket } from "./html-blocks";
 import {
 	MissingIncludeCollector,
 	createIncludeFetcher,
@@ -24,13 +19,10 @@ import {
 	type RenderViewerInput,
 } from "./providers";
 
-const encoder = new TextEncoder();
+import type { RenderDiagnostic, RenderTargetResult } from "./schema";
+export type { RenderDiagnostic, RenderTargetResult } from "./schema";
 
-export interface RenderDiagnostic {
-	severity: string;
-	code: string;
-	message: string;
-}
+const encoder = new TextEncoder();
 
 export interface RenderTargetInput {
 	bulk: Bulk;
@@ -44,21 +36,6 @@ export interface RenderTargetInput {
 	filesOrigin: string;
 	filesUrlSecret: string;
 	htmlBlockExpiresAt: number;
-}
-
-export interface RenderTargetResult {
-	requested: string;
-	fullname: string;
-	status: "ok" | "missing_includes" | "error";
-	html?: string;
-	styles?: string[];
-	html_blocks?: HtmlBlockMetadata[];
-	diagnostics: RenderDiagnostic[];
-	dependencies: Dependency[];
-	missing: MissingInclude[];
-	input_bytes: number;
-	error_message?: string;
-	error_code?: "render_failed" | "html_block_store_failed";
 }
 
 export async function renderTarget(input: RenderTargetInput): Promise<RenderTargetResult> {

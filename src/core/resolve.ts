@@ -1,25 +1,10 @@
 import { resolveIncludesAsyncWithTrace } from "@wdprlib/parser";
 import type { Bulk, TargetPage } from "./bulk";
-import {
-	MissingIncludeCollector,
-	createIncludeFetcher,
-	toDependency,
-	type Dependency,
-	type MissingInclude,
-} from "./providers";
+import { MissingIncludeCollector, createIncludeFetcher, toDependency } from "./providers";
+import type { ResolveTargetResult } from "./schema";
+export type { ResolveTargetResult } from "./schema";
 
 const encoder = new TextEncoder();
-
-export interface ResolveTargetResult {
-	requested: string;
-	fullname: string;
-	status: "ok" | "missing_includes";
-	dependencies: Dependency[];
-	missing: MissingInclude[];
-	reached_max_iterations: boolean;
-	input_bytes: number;
-	expanded_bytes: number;
-}
 
 export async function resolveTarget(bulk: Bulk, target: TargetPage): Promise<ResolveTargetResult> {
 	const missing = new MissingIncludeCollector(target.page.fullname, bulk.site.name);
