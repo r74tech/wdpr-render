@@ -34,7 +34,13 @@ const renderResult = result.extend({
 				index: z.number().int(),
 				hash: z.string(),
 				url: z.string(),
-				expires_at: z.number().int(),
+				expires_at: z
+					.number()
+					.int()
+					.meta({
+						description: "URL expiration as Unix seconds (UTC), 24 hours after rendering.",
+						examples: [1893542400],
+					}),
 			}),
 		)
 		.optional(),
@@ -52,6 +58,13 @@ function jsonSchema(schema: z.ZodType, io: "input" | "output" = "output") {
 		io,
 		target: "draft-2020-12",
 		override: ({ zodSchema, jsonSchema }) => {
+			if (jsonSchema.examples === undefined) {
+				if (jsonSchema.format === "date-time") {
+					jsonSchema.examples = ["2030-01-01T00:00:00Z"];
+				} else if (jsonSchema.type === "integer" || jsonSchema.type === "number") {
+					jsonSchema.examples = [0];
+				}
+			}
 			if (zodSchema === urlPathsSchema) {
 				Object.assign(jsonSchema, {
 					type: "object",
@@ -185,22 +198,79 @@ export const openApiDocument = {
 		},
 		schemas: {
 			Health: jsonSchema(health),
-			Me: jsonSchema(introspectionSchema),
+			Me: jsonSchema(
+				introspectionSchema.meta({
+					examples: [
+						{
+							user: { wikidot_id: 123456, name: "Example User", unix_name: "example-user" },
+							key: {
+								name: "Render preview",
+								scopes: ["render:use"],
+								expires_at: "2030-01-02T00:00:00Z",
+							},
+						},
+					],
+				}),
+			),
 			ResolveRequest: jsonSchema(resolveRequestSchema, "input"),
 			RenderRequest: jsonSchema(renderRequestSchema, "input"),
 			ResolveResponse: jsonSchema(
-				z.object({
-					results: z.array(resolveResult),
-					missing: z.array(missing),
-					elapsed_ms: z.number(),
-				}),
+				z
+					.object({
+						results: z.array(resolveResult),
+						missing: z.array(missing),
+						elapsed_ms: z.number(),
+					})
+					.meta({
+						examples: [
+							{
+								results: [
+									{
+										requested: "start",
+										fullname: "start",
+										status: "ok",
+										dependencies: [],
+										missing: [],
+										input_bytes: 35,
+										expanded_bytes: 35,
+										reached_max_iterations: false,
+									},
+								],
+								missing: [],
+								elapsed_ms: 1,
+							},
+						],
+					}),
 			),
 			RenderResponse: jsonSchema(
-				z.object({
-					results: z.array(renderResult),
-					missing: z.array(missing),
-					elapsed_ms: z.number(),
-				}),
+				z
+					.object({
+						results: z.array(renderResult),
+						missing: z.array(missing),
+						elapsed_ms: z.number(),
+					})
+					.meta({
+						examples: [
+							{
+								results: [
+									{
+										requested: "start",
+										fullname: "start",
+										status: "ok",
+										dependencies: [],
+										missing: [],
+										input_bytes: 35,
+										diagnostics: [],
+										html: '<h1 id="toc0"><span>Hello</span></h1><p>This is <strong>Wikidot</strong> syntax.</p>',
+										styles: [],
+										html_blocks: [],
+									},
+								],
+								missing: [],
+								elapsed_ms: 1,
+							},
+						],
+					}),
 			),
 			Error: jsonSchema(
 				z.object({ error: z.string(), code: z.string(), detail: z.unknown().optional() }),
