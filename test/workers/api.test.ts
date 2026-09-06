@@ -43,6 +43,16 @@ async function render(fetcher: Fetcher, source: string): Promise<Response> {
 }
 
 describe("API Worker runtime", () => {
+	test("serves documentation without authentication or service bindings", async () => {
+		const spec = await SELF.fetch("https://example.com/openapi.json");
+		expect(spec.status).toBe(200);
+		expect(spec.headers.get("Cache-Control")).toBe("no-store");
+		expect(await spec.json()).toMatchObject({ openapi: "3.1.0" });
+		const docs = await SELF.fetch("https://example.com/docs");
+		expect(docs.status).toBe(200);
+		expect(await docs.text()).toContain("/openapi.json");
+	});
+
 	test.each(["/", "/v1/health"])("serves the public health endpoint at %s", async (path) => {
 		const response = await SELF.fetch(`https://example.com${path}`);
 

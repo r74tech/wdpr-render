@@ -19,6 +19,7 @@
 		"test:workers": "bun run build:api && bun run build:files && vitest run && vitest run --config vitest.files.config.ts"
 	},
 	"dependencies": {
+		"@hono/swagger-ui": "^0.6.1",
 		"@wdprlib/ast": "^4.0.2",
 		"@wdprlib/parser": "^5.1.6",
 		"@wdprlib/render": "^4.0.7",

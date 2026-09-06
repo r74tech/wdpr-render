@@ -1,5 +1,7 @@
 import { Hono } from "hono";
 import { cors } from "hono/cors";
+import { swaggerUI } from "@hono/swagger-ui";
+import { openApiDocument } from "./openapi";
 import { ApiError } from "./errors";
 import { requireRenderKey } from "./middleware/auth";
 import { renderRoutes } from "./routes/render";
@@ -16,6 +18,17 @@ app.use("*", async (context, next) => {
 	}
 });
 app.use("/v1/*", cors({ origin: "*", allowHeaders: ["Authorization", "Content-Type"] }));
+
+app.get("/openapi.json", (context) => context.json(openApiDocument));
+app.get(
+	"/docs",
+	swaggerUI({
+		url: "/openapi.json",
+		title: "WDPR Render API",
+		validatorUrl: "",
+		persistAuthorization: false,
+	}),
+);
 
 app.on("GET", ["/", "/v1/health"], (context) =>
 	context.json({ ok: true, versions: { parser: "5.1.6", render: "4.0.7" } }),

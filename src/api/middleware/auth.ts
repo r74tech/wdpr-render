@@ -10,7 +10,7 @@ const UNAUTHORIZED_CACHE_TTL_MS = 10_000;
 const DEFAULT_TIMEOUT_MS = 5_000;
 const DEFAULT_CACHE_CAPACITY = 1_000;
 
-const introspectionSchema = z.object({
+export const introspectionSchema = z.object({
 	user: z.object({
 		wikidot_id: z.number().int(),
 		name: z.string(),

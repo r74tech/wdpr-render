@@ -38,7 +38,7 @@ const pageSchema = z.object({
 	rating_votes: z.number().optional(),
 });
 
-const urlPathsSchema = z.unknown().transform((value, context): Record<string, string> => {
+export const urlPathsSchema = z.unknown().transform((value, context): Record<string, string> => {
 	if (typeof value !== "object" || value === null || Array.isArray(value)) {
 		context.addIssue({ code: "custom", message: "URL paths must be an object" });
 		return z.NEVER;
