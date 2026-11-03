@@ -318,12 +318,23 @@ function normalizeWikidotCategoryName(value: string): string {
 	return leadingUnderscore ? `_${body}` : body;
 }
 
+// Same rules as normalizePageName in @wdprlib/render (src/context/page-name.ts), which
+// normalizes link targets before resolvePageExistence. The renderer does not export it.
 function normalizeRenderedPageReference(value: string): string {
-	let normalized = value.toLowerCase();
-	if (normalized.includes(":")) normalized = normalized.replace(/:\s+/g, ":");
-	if (/\s/.test(normalized)) normalized = normalized.replace(/\s+/g, "-").trim();
-	if (!normalized.startsWith("/") && normalized.includes("/")) {
-		normalized = normalized.replaceAll("/", "-");
+	let name = Array.from(value.trim().replace(/^\//, "").normalize("NFKC"), (char) =>
+		char.toLowerCase(),
+	)
+		.join("")
+		.replace(/[^\p{L}\p{N}:_-]/gu, "-");
+	const category = name.lastIndexOf(":");
+	if (category !== -1) {
+		name = name.slice(0, category).replaceAll(":", "-") + name.slice(category);
 	}
-	return normalized.startsWith("/") ? normalized.slice(1) : normalized;
+	name = name
+		.replace(/(?<!^|:)_/g, "-")
+		.replace(/-+/g, "-")
+		.replace(/^-|-$/g, "")
+		.replace(/-*([:_])-*/g, "$1")
+		.replace(/^:|:$/g, "");
+	return name.startsWith("_default:") ? name.slice("_default:".length) : name;
 }

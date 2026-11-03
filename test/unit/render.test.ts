@@ -232,6 +232,29 @@ describe("renderTarget", () => {
 		},
 	);
 
+	test("matches link targets to pages with the renderer's page-name normalization", async () => {
+		const { bulk, target } = targetFor([
+			{ fullname: "start", source: "[[[my_page]]] [[[Other_Page]]] [[[missing_page]]]" },
+			{ fullname: "my_page", source: "" },
+		]);
+		const { bucket } = recordingBucket();
+
+		const result = await renderTarget({
+			bulk,
+			target,
+			force: false,
+			existingPages: ["other_page"],
+			bucket,
+			filesOrigin: "https://files.example",
+			filesUrlSecret: "secret",
+			htmlBlockExpiresAt: 90_000,
+		});
+
+		expect(result.html).toContain('<a href="/my-page">my_page</a>');
+		expect(result.html).toContain('<a href="/other-page">Other_Page</a>');
+		expect(result.html).toContain('<a href="/missing-page" class="newpage">missing_page</a>');
+	});
+
 	test("returns a provider diagnostic for unsupported ListPages selectors", async () => {
 		const { bulk, target } = targetFor([
 			{

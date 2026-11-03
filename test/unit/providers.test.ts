@@ -302,6 +302,21 @@ describe("TagCloud and render resolvers", () => {
 		});
 	});
 
+	test("normalizes existing pages like rendered link targets", async () => {
+		const bulk = buildBulk({
+			site,
+			pages: [
+				{ fullname: "my_page", source: "" },
+				{ fullname: "cat:sub_page", source: "" },
+			],
+		});
+		const pageExists = createPageExistenceResolver(bulk, ["Other_Page", "_default:plain"]);
+
+		expect(
+			await pageExists(["my-page", "cat:sub-page", "other-page", "plain", "_template", "missing"]),
+		).toEqual(new Set(["my-page", "cat:sub-page", "other-page", "plain"]));
+	});
+
 	test("preserves requested page spellings and raw user map keys", async () => {
 		const bulk = fixtureBulk();
 		const pageExists = createPageExistenceResolver(bulk, ["Existing", "my-page"]);

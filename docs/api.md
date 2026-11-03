@@ -128,7 +128,7 @@ Set `"force": true` on `/v1/render` to render even when includes are missing. WD
 
 - `viewer`: `{ "number": 7, "title": "Display name", "name": "unix-name" }` for `[[module ListUsers users="."]]`.
 - `users`: user records used by WDPR's batch user resolver. Each entry requires `unix_name` and `name`; `id` and `avatar_url` are optional.
-- `existing_pages`: additional local page names considered to exist when rendering links.
+- `existing_pages`: additional local page names considered to exist when rendering links. Names are compared after WDPR's link-target normalization, so `my_page` matches `[[[my_page]]]`, which links to `/my-page`.
 - `url_paths`: page fullname to request-path mapping used by URL-sensitive modules. Keys are normalized like page fullnames and collisions return 400.
 
 ## Dependency differences
