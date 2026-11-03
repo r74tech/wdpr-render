@@ -20,10 +20,10 @@
 	},
 	"dependencies": {
 		"@hono/swagger-ui": "^0.6.1",
-		"@wdprlib/ast": "^4.1.0",
-		"@wdprlib/parser": "^5.2.0",
-		"@wdprlib/render": "^4.1.0",
-		"@wdprlib/runtime": "^1.3.0",
+		"@wdprlib/ast": "^5.0.0",
+		"@wdprlib/parser": "^6.0.0",
+		"@wdprlib/render": "^5.0.1",
+		"@wdprlib/runtime": "^2.0.0",
 		"hono": "^4.13.7",
 		"hono-openapi": "^1.3.2",
 		"zod": "^4.5.4"
