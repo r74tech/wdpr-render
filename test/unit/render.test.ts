@@ -25,6 +25,29 @@ function recordingBucket(failOn?: string) {
 	};
 }
 
+function renderPagedListPages(urlPaths?: Record<string, string>) {
+	const { bulk, target } = targetFor([
+		{
+			fullname: "start",
+			source:
+				'[[module ListPages category="news" order="fullname asc" perPage="1"]]\n%%fullname%%\n[[/module]]',
+		},
+		{ fullname: "news:a", source: "A" },
+		{ fullname: "news:b", source: "B" },
+	]);
+	const { bucket } = recordingBucket();
+	return renderTarget({
+		bulk,
+		target,
+		force: false,
+		urlPaths,
+		bucket,
+		filesOrigin: "https://files.example",
+		filesUrlSecret: "secret",
+		htmlBlockExpiresAt: 90_000,
+	});
+}
+
 describe("renderTarget", () => {
 	test("renders includes, styles, modules, users, and signed html blocks", async () => {
 		const source = [
@@ -156,6 +179,24 @@ describe("renderTarget", () => {
 		expect(result.html).toBeUndefined();
 		expect(result.html_blocks).toBeUndefined();
 		expect(puts.map(({ content }) => content)).toEqual(["first"]);
+	});
+
+	test("pages ListPages through the target URL path", async () => {
+		const first = await renderPagedListPages();
+		const second = await renderPagedListPages({ start: "/start/p/2" });
+		const unpaged = await renderPagedListPages({ start: "start/p/2" });
+
+		expect(first.diagnostics).toEqual([]);
+		expect(first.html).toContain("news:a");
+		expect(first.html).not.toContain("news:b");
+		expect(first.html).toContain('href="/start/p/2"');
+		expect(second.html).toContain("news:b");
+		expect(second.html).not.toContain("news:a");
+		expect(second.html).toContain('href="/start/p/1"');
+		expect(unpaged.diagnostics).toEqual([]);
+		expect(unpaged.html).toContain("news:a");
+		expect(unpaged.html).not.toContain("news:b");
+		expect(unpaged.html).not.toContain("pager");
 	});
 
 	test("returns a provider diagnostic for unsupported ListPages selectors", async () => {

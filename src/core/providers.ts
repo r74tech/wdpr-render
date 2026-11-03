@@ -175,7 +175,7 @@ export function createListPagesProvider(
 			.toSorted(listPagesComparator(query));
 		const totalCount = pages.length;
 		const offset = Math.max(query.offset ?? 0, 0);
-		const limit = query.limit ?? 20;
+		const limit = listPagesBatchLimit(query);
 		return {
 			pages: pages.slice(offset, limit < 0 ? undefined : offset + limit),
 			totalCount,
@@ -261,6 +261,7 @@ const LIST_PAGES_FIELDS = new Set([
 	"reverse",
 	"offset",
 	"limit",
+	"perPage",
 ]);
 const LIST_PAGES_ORDER_FIELDS = new Set(["created_at", "updated_at", "title", "fullname"]);
 
@@ -269,6 +270,16 @@ function unsupportedListPagesFields(query: NormalizedListPagesQuery): string[] {
 	if (query.range !== undefined && query.range !== ".") fields.push("range");
 	if (query.order && !LIST_PAGES_ORDER_FIELDS.has(query.order.field)) fields.push("order");
 	return [...new Set(fields)];
+}
+
+// The parser pages a ListPages module itself when the page URL is a path, passing the
+// current page's offset and limit together with perPage. For other URLs it passes the
+// raw query, so perPage still bounds the single page that is returned.
+function listPagesBatchLimit(query: NormalizedListPagesQuery): number {
+	const limit = query.limit ?? 20;
+	const perPage = query.perPage;
+	if (perPage === undefined || !Number.isSafeInteger(perPage) || perPage <= 0) return limit;
+	return limit < 0 ? perPage : Math.min(limit, perPage);
 }
 
 function listPagesComparator(

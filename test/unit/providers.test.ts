@@ -200,6 +200,34 @@ describe("PageData and ListPages", () => {
 		]);
 	});
 
+	test("accepts perPage and bounds the returned page by it", async () => {
+		const bulk = fixtureBulk();
+		const diagnostics: ProviderDiagnostic[] = [];
+		const listPages = createListPagesProvider(bulk, diagnostics);
+		const base: NormalizedListPagesQuery = {
+			category: { include: [], exclude: [], all: true, current: false },
+			order: { field: "fullname", direction: "asc" },
+		};
+		const fullnames = async (query: NormalizedListPagesQuery) =>
+			(await listPages({ ...base, ...query }, requirement, callbackContext)).pages.map(
+				(page) => page.fullname,
+			);
+
+		const paged = await listPages(
+			{ ...base, offset: 1, limit: 1, perPage: 1 },
+			requirement,
+			callbackContext,
+		);
+
+		expect(paged.pages.map((page) => page.fullname)).toEqual(["news:first"]);
+		expect(paged.totalCount).toBe(3);
+		expect(await fullnames({ perPage: 2 })).toEqual(["guide", "news:first"]);
+		expect(await fullnames({ limit: -1, perPage: 2 })).toEqual(["guide", "news:first"]);
+		expect(await fullnames({ limit: 1, perPage: 2 })).toEqual(["guide"]);
+		expect(await fullnames({ perPage: 0 })).toEqual(["guide", "news:first", "news:second"]);
+		expect(diagnostics).toEqual([]);
+	});
+
 	test.each([
 		[{ pagetype: "normal" }, "pagetype"],
 		[{ parent: { type: "none" } }, "parent"],
@@ -210,7 +238,7 @@ describe("PageData and ListPages", () => {
 		[{ rating: { op: ">", value: 0 } }, "rating"],
 		[{ votes: { op: ">", value: 0 } }, "votes"],
 		[{ dataFormFields: { status: "open" } }, "dataFormFields"],
-		[{ perPage: 10 }, "perPage"],
+		[{ ratingAxis: "fun" }, "ratingAxis"],
 		[{ range: "before" }, "range"],
 		[{ order: { field: "rating", direction: "asc" } }, "order"],
 		[{ order: { field: "votes", direction: "asc" } }, "order"],
@@ -218,6 +246,8 @@ describe("PageData and ListPages", () => {
 		[{ order: { field: "comments", direction: "asc" } }, "order"],
 		[{ order: { field: "size", direction: "asc" } }, "order"],
 		[{ order: { field: "random", direction: "asc" } }, "order"],
+		[{ order: { field: "commented_at", direction: "asc" } }, "order"],
+		[{ order: { field: "metadata", key: "status", direction: "asc" } }, "order"],
 		[{ rating: { op: ">", value: 0 }, limit: 0 }, "rating"],
 		[{ parent: { type: "none" }, range: "." }, "parent"],
 	] satisfies Array<[NormalizedListPagesQuery, string]>)(
