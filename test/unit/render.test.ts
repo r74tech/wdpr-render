@@ -25,16 +25,19 @@ function recordingBucket(failOn?: string) {
 	};
 }
 
-function renderPagedListPages(urlPaths?: Record<string, string>) {
-	const { bulk, target } = targetFor([
-		{
-			fullname: "start",
-			source:
-				'[[module ListPages category="news" order="fullname asc" perPage="1"]]\n%%fullname%%\n[[/module]]',
-		},
-		{ fullname: "news:a", source: "A" },
-		{ fullname: "news:b", source: "B" },
-	]);
+function renderPagedListPages(urlPaths?: Record<string, string>, fullname = "start") {
+	const { bulk, target } = targetFor(
+		[
+			{
+				fullname,
+				source:
+					'[[module ListPages category="news" order="fullname asc" perPage="1"]]\n%%fullname%%\n[[/module]]',
+			},
+			{ fullname: "news:a", source: "A" },
+			{ fullname: "news:b", source: "B" },
+		],
+		fullname,
+	);
 	const { bucket } = recordingBucket();
 	return renderTarget({
 		bulk,
@@ -198,6 +201,36 @@ describe("renderTarget", () => {
 		expect(unpaged.html).not.toContain("news:b");
 		expect(unpaged.html).not.toContain("pager");
 	});
+
+	test.each([
+		["start", "//evil.example", false],
+		["start", "/\\evil.example", true],
+		["start", "/\t/evil.example", true],
+		["start", "/\n\\evil.example", true],
+		["start", "/\t", true],
+		["start", "/\n?x", true],
+		["\\evil.example", undefined, true],
+		["\\evil.example", "/", true],
+		["\\evil.example", "", true],
+		["\\evil.example", "//", false],
+	] as const)(
+		"keeps ListPages pager links on the same host: %j %j",
+		async (fullname, path, paged) => {
+			const result = await renderPagedListPages(
+				path === undefined ? undefined : { [fullname]: path },
+				fullname,
+			);
+			const hrefs = [...(result.html ?? "").matchAll(/href="([^"]*)"/g)].map(
+				([, href]) => new URL(href!.replaceAll("&amp;", "&"), "https://render.example/"),
+			);
+
+			expect(result.status).toBe("ok");
+			expect(result.html).toContain("news:a");
+			expect(result.html).not.toContain("news:b");
+			expect(hrefs.length > 0).toBe(paged);
+			expect(hrefs.filter((href) => href.host !== "render.example")).toEqual([]);
+		},
+	);
 
 	test("returns a provider diagnostic for unsupported ListPages selectors", async () => {
 		const { bulk, target } = targetFor([

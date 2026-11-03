@@ -144,7 +144,7 @@ Clients must use the aggregate `missing` field from the endpoint they are curren
 
 ListPages evaluates only pages supplied in the local bulk. Supported selectors are `category`, `tags`, `name`, `fullname`, `range="."`, `order`, `reverse`, `offset`, `limit`, and `perPage`. Supported order fields are `created_at`, `updated_at`, `title`, and `fullname`; the default is `created_at` descending. Unsupported selectors produce a `listpages-unsupported-selector` warning and an empty module result.
 
-When the target's URL path starts with `/` (the `url_paths` entry, or `/<fullname>` by default), WDPR splits the result into pages of `perPage` items (default 20), renders a pager, and reads the current page from the path, for example `/start/p/2`. Paths without a leading `/` or starting with `//` are not paged; for them `perPage` only caps the number of listed pages.
+When the target's URL path starts with `/` (the `url_paths` entry, or `/<fullname>` by default), WDPR splits the result into pages of `perPage` items (default 20), renders a pager, and reads the current page from the path, for example `/start/p/2`. Paths without a leading `/` or starting with `//` are not paged; for them `perPage` only caps the number of listed pages. Backslashes, tabs, and newlines in the first path segment are percent-encoded so that pager links stay on the same host.
 
 TagCloud also evaluates only local bulk pages. Hidden tags beginning with `_` are excluded. A category is normalized to its Wikidot unix-name form; a category absent from the bulk is treated as not found.
 

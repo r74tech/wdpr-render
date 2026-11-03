@@ -135,7 +135,22 @@ export async function renderTarget(input: RenderTargetInput): Promise<RenderTarg
 
 function urlPathFor(paths: Readonly<Record<string, string>> | undefined, fullname: string): string {
 	const key = normalizeFullname(fullname);
-	return paths && Object.hasOwn(paths, key) ? paths[key]! : `/${fullname}`;
+	const requested = paths && Object.hasOwn(paths, key) ? paths[key]! : "";
+	// processWikitext puts the page name into an empty, "/", "/?..." or "/#..." path.
+	// Do it here so the first segment below is the one the pager links to.
+	const path =
+		!requested || /^\/(?:[?#]|$)/.test(requested) ? `/${fullname}${requested.slice(1)}` : requested;
+	return withSameHostPagerPath(path);
+}
+
+// The ListPages pager links to "/<first segment>/.../p/<n>". Browsers drop tabs and
+// newlines and read "\" as "/", so a first segment such as "\host" or "\t" would make the
+// link point to another host. @URL values skip the first segment, so encoding it is safe.
+function withSameHostPagerPath(path: string): string {
+	return path.replace(
+		/^\/([^/?#]*)/,
+		(_match, segment: string) => `/${segment.replace(/[\\\t\n\r]/g, encodeURIComponent)}`,
+	);
 }
 
 function baseResult(
